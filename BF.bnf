@@ -1,0 +1,5 @@
+<Program> ::= <Instruction>*
+
+<Instruction> ::= "+" | "-" | "<" | ">" | "." | "," | <LoopInstruction>
+
+<LoopInstruction> ::= "[" <Instruction>* "]"
