@@ -1,3 +1,4 @@
+//import { AbstractInput, AbstractOutput } from './IO';
 import { AbstractInput, AbstractOutput } from './IO';
 import { parse } from './parser';
 import { tokenize } from './tokenizer';
@@ -5,50 +6,40 @@ import { Program } from './type';
 
 type Memory = { [key: number]: number };
 
-export function evalCode(
-  code: string,
-  output?: AbstractOutput,
-  input?: AbstractInput
-): void {
-  const tokens = tokenize(code);
-  const program = parse(tokens);
-  evalBf(program, 0, {}, output, input);
-}
+export class Evaluator {
+  constructor(private input: AbstractInput, private output: AbstractOutput) {}
 
-function evalBf(
-  program: Program,
-  ptr: number,
-  mem: Memory,
-  output?: AbstractOutput,
-  input?: AbstractInput
-) {
-  for (const inst of program) {
-    if (mem[ptr] === undefined) {
-      mem[ptr] = 0;
-    }
+  evalCode(code: string): void {
+    const tokens = tokenize(code);
+    const program = parse(tokens);
+    this.evalBf(program, 0, {});
+  }
 
-    if (inst === '+') {
-      mem[ptr] += 1;
-    } else if (inst === '-') {
-      mem[ptr] -= 1;
-    } else if (inst === '<') {
-      ptr -= 1;
-    } else if (inst === '>') {
-      ptr += 1;
-    } else if (inst === '.') {
-      if (output) {
-        output.putCharCode(mem[ptr]);
-      } else {
-        console.log(String.fromCharCode(mem[ptr]));
+  evalBf(program: Program, ptr: number, mem: Memory) {
+    for (const inst of program) {
+      if (mem[ptr] === undefined) {
+        mem[ptr] = 0;
       }
-    } else if (inst === ',') {
-      mem[ptr] = input?.getCharCode() || 0;
-    } else {
-      // inst instanceof LoopInstruction
-      while (mem[ptr] !== 0) {
-        evalBf(inst.exps, ptr, mem);
+
+      if (inst === '+') {
+        mem[ptr] += 1;
+      } else if (inst === '-') {
+        mem[ptr] -= 1;
+      } else if (inst === '<') {
+        ptr -= 1;
+      } else if (inst === '>') {
+        ptr += 1;
+      } else if (inst === '.') {
+        const charCode = mem[ptr];
+        this.output.putCharCode(charCode);
+      } else if (inst === ',') {
+        mem[ptr] = this.input.getCharCode();
+      } else {
+        // if (inst instanceof LoopInstruction)
+        while (mem[ptr] !== 0) {
+          this.evalBf(inst.instructions, ptr, mem);
+        }
       }
     }
   }
-  output?.flush();
 }

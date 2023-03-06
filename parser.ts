@@ -12,7 +12,7 @@ export function parse(
   const t = tokens.shift()!;
   if (t === '[') {
     // LoopInstruction
-    result.push({ exps: parse(tokens) });
+    result.push({ instructions: parse(tokens) });
     return parse(tokens, result);
   } else if (t === ']') {
     return result;
