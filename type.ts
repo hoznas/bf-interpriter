@@ -1,3 +1,4 @@
+// type.ts
 export type Program = Instruction[];
 
 export type Instruction = '+' | '-' | '<' | '>' | '.' | ',' | LoopInstruction;

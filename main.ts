@@ -1,16 +1,15 @@
-import { Evaluator } from './evaluator';
-import { StringInput, StringOutput } from './IO';
+import { evaluate } from './evaluator';
+import { parse } from './parser';
+import { tokenize } from './tokenizer';
 
-function main() {
+async function main() {
   const code =
     '++++++++++[->+++++++<]>++.>++++++++++[->++++++++++<]>+.<+++[->++<]>+..+++.<<<++++[->-------<]>.<+++[->----<]>.>++[->++++<]>.<++[->----<]>.+++.<++[->---<]>.<++[->----<]>.<<+.';
   //'+[,.]';
-  const inputStr = 'this is sample input.';
 
-  const input = new StringInput(inputStr);
-  const output = new StringOutput();
-  const evaluator = new Evaluator(input, output);
-  evaluator.evalCode(code);
+  const tokens = tokenize(code);
+  const ast = parse(tokens);
+  await evaluate(ast);
 }
 
 main();
