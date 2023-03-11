@@ -2,7 +2,11 @@
 // トークンの型定義
 export type Token = '+' | '-' | '<' | '>' | '.' | ',' | '[' | ']';
 
-// BFコードを受け取り、Tokenの配列を返す関数
+/**
+  BFコードを受け取り、Tokenの配列を返す関数
+  @param {string} code BFコード
+  @returns {Token[]} Tokenの配列
+*/
 export function tokenize(code: string): Token[] {
   const tokens: Token[] = [];
 

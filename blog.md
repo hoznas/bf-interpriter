@@ -9,19 +9,21 @@ BlogやTodoリスト、テキストエディタやブラウザなどを作ろう
 
 ## プログラミング言語を自作することのメリットは何でしょうか？
 プログラミング言語を自分で作ることで、プログラミング言語に対する深い理解が生まれます。
-もちろん、プログラミング言語を自作するのは、それなりに大変な作業ですが、
-その分、達成感が大きくなります。
+もちろん、プログラミング言語を自作するのは、それなりに大変な作業ですが、その分、達成感が大きくなります。
 これからのプログラミング生活に大きなプラスをもたらします。
+
 大丈夫です。簡単なものから始めて徐々に複雑な言語にステップアップしていきましょう。
 
 ## 今回のテーマは「BrainF*ck」です
 BrainF*ckとは、簡単に書くと以下のような特徴があるプログラミング言語です。
-言語処理系を初めて作るのに最適なプログラミング言語です。
+
+非常にシンプルな言語なので言語処理系を初めて作るのに最適なプログラミング言語です。
 （でも、名前がよろしくないので、ここからはBFと表記しますね。）
 
-命令が8個(8文字)しかなく、言語処理系が小さくなるように設計されています。
-計算機理論の「チューリングマシン」を忠実に再現した計算モデルです。
-いわゆる「難解言語」の一つとされ、読みにくく、書きにくいです。実用性もありません。
+- 命令が8個(8文字)しかなく、言語処理系が小さくなるように設計されています。
+- 計算機理論の「チューリングマシン」を忠実に再現した計算モデルです。
+- いわゆる「難解言語」の一つとされ、読みにくく、書きにくいです。実用性もありません。
+
 Hello, world!を出力するプログラムは以下のとおりです。（コードは英語版のWikipediaから拝借）
 ```BrainFuck
 ++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.
@@ -33,8 +35,9 @@ BFの詳細については、以下のサイトを参照してください。文
 - http://www.kmonos.net/alang/etc/brainfuck.php
 
 ## インタプリタを作ろう
-このコーナーでは、主にTypescriptを使用します。理由は、私がメインで使用していて馴染みがあるためです。もちろん、Typescript固有の機能は使用しません。
-
+インタプリタのソースコードはTypescriptで表記します。
+理由は、私がメインで使用していて馴染みがあるためです。
+もちろん、Typescript固有の機能は使用しません。
 
 ## BFプログラムとTypescriptの対応表
 BFは、命令が非常に単純であるため、以下の表のようにTypescriptのコードに対応することができます。
@@ -44,10 +47,10 @@ BFは、命令が非常に単純であるため、以下の表のようにTypesc
 |<|ポインタを左に移動する|pointer--;|
 |+|ポインタが指し示すメモリセルの値を1増やす|memory\[pointer\]++;|
 |-|ポインタが指し示すメモリセルの値を1減らす|memory\[pointer\]--;|
-|\[|ポインタが指し示すメモリセルの値が0でない間、対応する"]"までの命令を繰り返す|while(memory\[pointer]!==0){|
+|\[|ポインタが指し示すメモリセルの値が0でない間、対応する"]"までの命令を繰り返す|while(memory\[pointer\]!==0){|
 |\]|上記のとおり|}|
 |.|ポインタが指し示すメモリセルに対応する文字コードを出力する|process.stdout.write(String.fromCharCode(memory\[pointer\]));|
-|,|await readByte();/* 実装は後で紹介します */|
+|,|１文字読み取ってそのASCIIコードをメモリセルに格納する|memory\[pointer\] = input.read();/* 実装は後で紹介します */|
 
 実際に置き換えれば言語処理系として完成してしまうのですが、それでは技術的経験値を積めないのでちょっと丁寧に言語処理系を作ります。
 
@@ -95,7 +98,11 @@ BFのコードを文法的に意味のある最小の要素まで分解すると
 // トークンの型定義
 export type Token = '+' | '-' | '<' | '>' | '.' | ',' | '[' | ']';
 
-// BFコードを受け取り、Tokenの配列を返す関数
+/**
+  BFコードを受け取り、Tokenの配列を返す関数
+  @param {string} code BFコード
+  @returns {Token[]} Tokenの配列
+*/
 export function tokenize(code: string): Token[] {
   const tokens: Token[] = [];
 
@@ -142,16 +149,16 @@ BNFの記述と違う部分は、"["と"]"が消えて、LoopInstructionに集�
 
 ```Typescript
 // parser.ts
-import { Token } from './tokenizer';
-import { Instruction, LoopInstruction } from './type';
-
 /**
  * 解析結果を木構造のASTに変換する
  * @param tokens 解析するTokenの配列
  * @param result 解析結果を格納する配列
  * @returns 解析結果の木構造のAST
  */
-export function parse(tokens: Token[], result: Instruction[]): Instruction[] {
+export function parse(
+  tokens: Token[],
+  result: Instruction[] = []
+): Instruction[] {
   if (tokens.length === 0) {
     // 全てのTokenを解析し終えたら結果を返す
     return result;
@@ -182,7 +189,7 @@ export function parse(tokens: Token[], result: Instruction[]): Instruction[] {
 - "]"があったらresultを返す。
 - 上記を再起的に繰り返し、最終的にtokensが空になったらresultを返して終了となります。
 
-さて、以下のBFプログラムを試しに実行してみましょう！
+さて、以下のBFプログラムを試しに実行して、確認してみましょう！
 ```Typescript
 // サンプルプログラム
 const bfCode = "+++[->+++[->+[<-->]++<][.,]<]+++."  //適当です
@@ -196,43 +203,25 @@ console.log(ast)  // BFプログラムに対応するASTの出力
 parserが作成してくれたASTを評価していきます。
 
 ```Typescript
-import * as readline from 'readline';
+import fs from 'fs';
 import { Program } from './type';
-
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-  terminal: false,
-});
-
-/**
- * 標準入力から1byte読み取り、その数値をPromiseで返す。
- * @returns {Promise<number>} 読み取った数値
- */
-async function readByte(): Promise<number> {
-  return new Promise<number>((resolve) => {
-    rl.once('line', (line: string) => {
-      const charCode = line.charCodeAt(0);
-      resolve(charCode);
-    });
-  });
-}
 
 /**
  * BFのプログラムを評価する。
  * @param program 評価対象のBFプログラムを表すAST
  * @param pointer 現在指しているメモリの位置
  * @param memory メモリの値を格納した配列
+ * @param input 標準入力を読み込む。必要になるまで初期化されない
  */
 export async function evaluate(
   program: Program,
   pointer: number = 0,
-  memory: number[] = []
+  memory: number[] = [],
+  input: InputStream | undefined = undefined
 ) {
   for (const inst of program) {
     // pointerの指すメモリが未定義のときは0を入れておく。
     if (memory[pointer] === undefined) memory[pointer] = 0;
-
     // 命令を評価する
     if (inst === '+') {
       memory[pointer] += 1;
@@ -246,135 +235,27 @@ export async function evaluate(
       const charCode = memory[pointer];
       process.stdout.write(String.fromCharCode(charCode));
     } else if (inst === ',') {
-      /* 入力関数の実装は見送ります。各自で作ってみて下さい。 */
-      memory[pointer] = await readByte();
+      if (!input) input = new InputStream();
+      memory[pointer] = input.read();
     } else {
       // ループ命令の場合、メモリの値が0でない間、ブロックの評価を繰り返す
       while (memory[pointer] !== 0) {
-        evaluate(inst.instructions, pointer, memory);
-      }import * as readline from 'readline';
-import { Program } from './type';
-
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-  terminal: false,
-});
-
-/**
- * 標準入力から1byte読み取り、その数値をPromiseで返す。
- * @returns {Promise<number>} 読み取った数値
- */
-async function readByte(): Promise<number> {
-  return new Promise<number>((resolve) => {
-    rl.once('line', (line: string) => {
-      const charCode = line.charCodeAt(0);
-      resolve(charCode);
-    });
-  });
-}
-
-/**
- * BFのプログラムを評価する。
- * @param program 評価対象のBFプログラムを表すAST
- * @param pointer 現在指しているメモリの位置
- * @param memory メモリの値を格納した配列
- */
-export async function evaluate(
-  program: Program,
-  pointer: number = 0,
-  memory: number[] = []
-) {
-  for (const inst of program) {
-    // pointerの指すメモリが未定義のときは0を入れておく。
-    if (memory[pointer] === undefined) memory[pointer] = 0;
-
-    // 命令を評価する
-    if (inst === '+') {
-      memory[pointer] += 1;
-    } else if (inst === '-') {
-      memory[pointer] -= 1;
-    } else if (inst === '<') {
-      pointer -= 1;
-    } else if (inst === '>') {
-      pointer += 1;
-    } else if (inst === '.') {
-      const charCode = memory[pointer];
-      process.stdout.write(String.fromCharCode(charCode));
-    } else if (inst === ',') {
-      /* 入力関数の実装は見送ります。各自で作ってみて下さい。 */
-      memory[pointer] = await readByte();
-    } else {
-      // ループ命令の場合、メモリの値が0でない間、ブロックの評価を繰り返す
-      while (memory[pointer] !== 0) {
-        evaluate(inst.instructions, pointer, memory);
+        evaluate(inst.instructions, pointer, memory, input);
       }
     }
   }
 }
-import * as readline from 'readline';
-import { Program } from './type';
-
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-  terminal: false,
-});
-
-/**
- * 標準入力から1byte読み取り、その数値をPromiseで返す。
- * @returns {Promise<number>} 読み取った数値
- */
-async function readByte(): Promise<number> {
-  return new Promise<number>((resolve) => {
-    rl.once('line', (line: string) => {
-      const charCode = line.charCodeAt(0);
-      resolve(charCode);
-    });
-  });
-}
-
-/**
- * BFのプログラムを評価する。
- * @param program 評価対象のBFプログラムを表すAST
- * @param pointer 現在指しているメモリの位置
- * @param memory メモリの値を格納した配列
- */
-export async function evaluate(
-  program: Program,
-  pointer: number = 0,
-  memory: number[] = []
-) {
-  for (const inst of program) {
-    // pointerの指すメモリが未定義のときは0を入れておく。
-    if (memory[pointer] === undefined) memory[pointer] = 0;
-
-    // 命令を評価する
-    if (inst === '+') {
-      memory[pointer] += 1;
-    } else if (inst === '-') {
-      memory[pointer] -= 1;
-    } else if (inst === '<') {
-      pointer -= 1;
-    } else if (inst === '>') {
-      pointer += 1;
-    } else if (inst === '.') {
-      const charCode = memory[pointer];
-      process.stdout.write(String.fromCharCode(charCode));
-    } else if (inst === ',') {
-      /* 入力関数の実装は見送ります。各自で作ってみて下さい。 */
-      memory[pointer] = await readByte();
-    } else {
-      // ループ命令の場合、メモリの値が0でない間、ブロックの評価を繰り返す
-      while (memory[pointer] !== 0) {
-        evaluate(inst.instructions, pointer, memory);
-      }
-    }
+export class InputStream {
+  private i = 0;
+  constructor(private inputString = fs.readFileSync('/dev/stdin').toString()) {}
+  read() {
+    return this.i < this.inputString.length
+      ? this.inputString.charCodeAt(this.i++)
+      : 0;
   }
 }
-
 ```
-もう簡単ですね。
+簡単に説明すると以下の通りです。
 - {+ - < > , .}のときは、そのとおり実行する。
 - ループ命令の時は、メモリの値が0でない間、再帰して実行します。
 - プログラムの最後に到達したら終了です。

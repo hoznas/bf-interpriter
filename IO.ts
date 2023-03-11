@@ -1,31 +1,11 @@
-export abstract class AbstractInput {
-  abstract getCharCode(): number;
-}
+import fs from 'fs';
 
-export class StringInput extends AbstractInput {
-  inputStr: string;
-  pointer: number;
-  constructor(input: string) {
-    super();
-    this.inputStr = input;
-    this.pointer = 0;
-  }
-  getCharCode(): number {
-    if (this.pointer < this.inputStr.length) {
-      const ch = this.inputStr.charCodeAt(this.pointer);
-      this.pointer++;
-      return ch;
-    }
-    return 0;
-  }
-}
-export abstract class AbstractOutput {
-  abstract putCharCode(charCode: number): void;
-}
-
-export class StringOutput extends AbstractOutput {
-  putCharCode(charCode: number): void {
-    const c = String.fromCharCode(charCode);
-    process.stdout.write(c);
+export class InputStream {
+  private i = 0;
+  constructor(private inputString = fs.readFileSync('/dev/stdin').toString()) {}
+  read() {
+    return this.i < this.inputString.length
+      ? this.inputString.charCodeAt(this.i++)
+      : 0;
   }
 }
