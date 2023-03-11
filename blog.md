@@ -191,6 +191,9 @@ export function parse(
 
 さて、以下のBFプログラムを試しに実行して、確認してみましょう！
 ```Typescript
+import { tokenize } from './tokenizer'
+import { parse } from './parser'
+
 // サンプルプログラム
 const bfCode = "+++[->+++[->+[<-->]++<][.,]<]+++."  //適当です
 const tokens = tokenize(bfCode)
